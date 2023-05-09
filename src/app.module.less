@@ -1,12 +1,19 @@
 .app {
-  position: fixed;
-  top: 100px;
-  left: 100%;
-  transform: translateX(-25px);
+  position  : fixed;
+  top       : 100px;
+  left      : 100%;
+  transform : translateX(-25px);
   transition: all 0.18s;
+  z-index   : 10000;
+
   &:hover {
     // right: 100px;
     transform: translateX(-100%);
   }
-  
+
+  .anticon {
+    &::before {
+      display: none !important;
+    }
+  }
 }

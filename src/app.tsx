@@ -1,70 +1,76 @@
+import { AlertTwoTone } from "@ant-design/icons";
+import { Button, Dropdown, App } from "antd";
+
 import _ from "lodash";
 import fp from "lodash/fp";
-import { Button, Dropdown, Menu } from "antd";
-import { observer, useLocalObservable } from "mobx-react";
-import { AlertTwoTone } from "@ant-design/icons";
-
-import AbilityTypes from "./ability/types";
+import { observable } from "mobx";
+import { observer } from "mobx-react";
+import AbilitySqlToJsonSchema from "./ability/sql-to-json-schema";
 import AbilityMock from "./ability/mock";
-
+import AbilityTypes from "./ability/types";
+import AbilityWebServices from "./ability/web-services";
 import styles from "./app.module.less";
+import { useModalCustom } from "./compts/layout-modal";
 
-const Overlay = observer(() => {
-  const state = useLocalObservable(() => ({
-    drawerTypesVisible: false,
-    drawerMockVisible: false,
-    toggleVisible(key: string) {
-      const val = fp.get(key, this);
-      if (fp.isBoolean(val)) {
-        _.set(this, key, !val);
-      }
-      _.forEach(this, (item, _key) => {
-        if (_key != key && item === true) {
-          _.set(this, _key, false);
-        }
-      });
-    },
-  }));
+const optionsConfig = [
+  //
+  { title: "请求和返回TS类型", content: AbilityTypes },
+  { title: "mock", content: AbilityMock },
+  { title: "webService", content: AbilityWebServices },
+  { title: "生成json-schema", content: AbilitySqlToJsonSchema },
+];
 
-  return (
-    <>
-      <Menu>
-        <Menu.Item
-          key="1"
-          onClick={state.toggleVisible.bind(null, "drawerTypesVisible")}
-        >
-          请求和返回TS类型
-        </Menu.Item>
-        <Menu.Item
-          key="3"
-          onClick={state.toggleVisible.bind(null, "drawerMockVisible")}
-        >
-          mock
-        </Menu.Item>
-      </Menu>
-
-      <AbilityTypes
-        visible={state.drawerTypesVisible}
-        onClose={state.toggleVisible.bind(null, "drawerTypesVisible")}
-      />
-      <AbilityMock
-        visible={state.drawerMockVisible}
-        onClose={state.toggleVisible.bind(null, "drawerMockVisible")}
-      />
-    </>
-  );
+const state = observable({
+  dropdownVisible: false,
+  drawerVisibles: _.map(optionsConfig, fp.stubFalse) as boolean[],
+  get selectedKeys() {
+    return fp.flow(
+      (data) => _.map(data, (item, index) => (item ? `${index}` : false)),
+      fp.filter(fp.isString)
+    )(this.drawerVisibles);
+  },
+  toggleVisible(index?: number) {
+    this.drawerVisibles = _.map(this.drawerVisibles, fp.stubFalse);
+    if (_.isNumber(index)) {
+      this.drawerVisibles[index] = true;
+    }
+  },
+  onVisibleChange(visible: boolean) {
+    this.dropdownVisible = visible;
+  },
 });
-const App = observer(() => {
+
+export default observer(() => {
+  const modalCustom = useModalCustom();
   return (
-    <div className={styles.app}>
-      <Dropdown overlay={<Overlay></Overlay>}>
-        <Button>
+    <App className={styles.app}>
+      <Dropdown
+        menu={{
+          items: _.map(optionsConfig, (item, index) => ({
+            key: index,
+            onClick: () => state.toggleVisible(index),
+            label: item.title,
+            style: { margin: 0 },
+          })),
+        }}
+        open={state.dropdownVisible || _.some(state.drawerVisibles)}
+        onOpenChange={(visible) => state.onVisibleChange(visible)}
+        // overlayStyle={{margin:}}
+        overlayStyle={{ width: 150 }}
+      >
+        <Button onClick={() => state.toggleVisible(0)}>
           <AlertTwoTone />
           额外功能
         </Button>
       </Dropdown>
-    </div>
+      {_.map(optionsConfig, (item, index) => (
+        <item.content
+          key={index}
+          visible={state.drawerVisibles[index]}
+          onClose={() => state.toggleVisible()}
+        />
+      ))}
+      {modalCustom}
+    </App>
   );
 });
-
-export default App;

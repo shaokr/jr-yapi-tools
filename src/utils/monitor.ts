@@ -12,7 +12,7 @@ type Fun<T, T2, T3, T4, T5, T6, T7, T8, T9> = (
   arg6?: T6,
   arg7?: T7,
   arg8?: T8,
-  arg9?: T9
+  arg9?: T9,
 ) => void;
 export default class Monitor<
   T = any,
@@ -23,7 +23,7 @@ export default class Monitor<
   T6 = any,
   T7 = any,
   T8 = any,
-  T9 = any
+  T9 = any,
 > {
   list: { [key: string]: any } = {};
   // 注册
@@ -50,12 +50,13 @@ export default class Monitor<
     delete this.list[key];
     return true;
   };
-  go = (...res: any) => {
-    const resList = [];
+  go = (...res: any[]) => {
+    const resList: any[] = [];
     for (const key in this.list) {
       try {
         resList.push(this.list[key](...res));
       } catch (e: any) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         resList.push(new Error(e));
       }
     }

@@ -1,9 +1,10 @@
 /**
  * h5 本地存储
  */
+import JSON from 'json5';
 const { localStorage, sessionStorage, location } = window;
-const KEY =location.pathname.replace(/[0-9]+$/,'');
-const getKEY = (key: string, G: boolean) => (G ? key : `${KEY}${key}`);
+const KEY = () => location.pathname.replace(/\/interface\/api\/[0-9]+$/, '');
+const getKEY = (key: string, G: boolean) => (G ? key : key);
 
 class Storage {
   storage: globalThis.Storage;
@@ -14,13 +15,13 @@ class Storage {
   get longth() {
     let i = 0;
     for (const key in this.storage) {
-      if (key.indexOf(KEY) === 0) i++;
+      if (key.indexOf(KEY()) === 0) i++;
     }
     return i;
   }
   // 获取
   get(key: string, G = false) {
-    return JSON.parse(this.storage.getItem(getKEY(key, G)) || "null");
+    return JSON.parse(this.storage.getItem(getKEY(key, G)) || 'null');
   }
   // 设置
   set(key: string, val: any, G = false) {
@@ -36,7 +37,7 @@ class Storage {
       this.storage.clear();
     } else {
       for (const key in this.storage) {
-        if (key.indexOf(KEY) === 0) this.remove(key.replace(KEY, ""));
+        if (key.indexOf(KEY()) === 0) this.remove(key.replace(KEY(), ''));
       }
     }
   }
@@ -52,5 +53,3 @@ export default {
   local,
   session,
 };
-
-
